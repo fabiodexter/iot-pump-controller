@@ -4,11 +4,11 @@
 class WifiManager
 {
 private:
+    App *parent;
 
 public:
-    App *parent;
     WifiManager();
-    void setParent(App *parent);
+    void setParent(App *_parent);
     void init();
     void loop();
 };

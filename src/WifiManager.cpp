@@ -2,9 +2,13 @@
 #include <Arduino.h>
 #include <App.h>
 #include "LittleFS.h"
-#include <ESP8266WiFi.h>
+//#include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncTCP.h>
+//#include <mqtt.h>
+App *parent__;
+//MQTTManager mqtt_manager;
+
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -28,24 +32,23 @@ const char *ipPath = "/ip.txt";
 const char *gatewayPath = "/gateway.txt";
 
 IPAddress localIP;
-// IPAddress localIP(192, 168, 1, 200); // hardcoded
-
-// Set your Gateway IP address
 IPAddress localGateway;
-// IPAddress localGateway(192, 168, 1, 1); //hardcoded
 IPAddress subnet(255, 255, 0, 0);
+
 
 // Timer variables
 unsigned long previousMillis = 0;
 const long interval = 10000; // interval to wait for Wi-Fi connection (milliseconds)
 
-// Set LED GPIO
-const int ledPin = 3;
-
-// Stores LED state
-String ledState;
-
 boolean restart = false;
+
+
+
+
+
+
+
+
 
 // Initialize LittleFS
 void initFS()
@@ -115,12 +118,18 @@ bool initWiFi()
 
     localGateway.fromString(gateway.c_str());
     WiFi.begin(ssid.c_str(), pass.c_str());
+    
+    Serial.println("WiFi Status:");
+    Serial.println(WiFi.status());
 
     Serial.println("Connecting to WiFi...");
     delay(10000);
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("Failed to connect.");
+        Serial.println("WiFi Status:");
+        Serial.println(WiFi.status());
+
         return false;
     }
 
@@ -128,60 +137,49 @@ bool initWiFi()
     return true;
 }
 
-// Replaces placeholder with LED state value
-String processor(const String &var)
-{
 
-    Serial.println(var);
-    Serial.println(ledPin);
-    if (var == "PUMP_STATE")
-    {
-        if (!digitalRead(ledPin))
-        {
-            ledState = "ON";
-        }
-        else
-        {
-            ledState = "OFF";
-        }
-        return ledState;
-    }
-    return String();
+String processor(String var)
+{
+    return parent__->exposeMetrics(var);
 }
 
 WifiManager::WifiManager()
 {
 }
-void WifiManager::setParent(App *parent)
+void WifiManager::setParent(App *_parent)
 {
-    this->parent = parent;
+    this->parent = _parent;
+    parent__ = _parent;
 }
 
 void WifiManager::init()
 {
 
     initFS();
-    // Set GPIO 2 as an OUTPUT
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, LOW);
 
     // Load values saved in LittleFS
     ssid = readFile(LittleFS, ssidPath);
     pass = readFile(LittleFS, passPath);
     ip = readFile(LittleFS, ipPath);
     gateway = readFile(LittleFS, gatewayPath);
+
     Serial.println(ssid);
     Serial.println(pass);
     Serial.println(ip);
     Serial.println(gateway);
 
+
+
+
     if (initWiFi())
     {
+        Serial.println("connected to wifi router");
+
         server.on("/", HTTP_GET, [this](AsyncWebServerRequest *request)
                   { 
-            Serial.println("serve index page");
+            Serial.println("serving index page");
             int paramsNr = request->params();
-            Serial.println(paramsNr);
+            //Serial.println(paramsNr);
             String pparams = "";
             for(int i=0;i<paramsNr;i++){
                 AsyncWebParameter* p = request->getParam(i);
@@ -193,6 +191,7 @@ void WifiManager::init()
 
         server.serveStatic("/", LittleFS, "/");
         server.begin();
+        Serial.println("webserver running");
     }
     else
     {
@@ -265,4 +264,5 @@ void WifiManager::loop()
         delay(5000);
         ESP.restart();
     }
+    //mqtt_manager.loop_mqtt();
 }

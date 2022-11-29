@@ -5,21 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" href="style.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <script src="global.js"></script>
   </head>
-  <body>
+  <body class="index">
+    <!-- SVG -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" id="line">
+    <line x1="75" y1="34" x2="75" y2="58"/>
+  </symbol>
+  <symbol xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" id="circle">
+    <circle cx="75" cy="80" r="35"/>
+  </symbol>
+</svg>
+
     <div class="topnav">
       <h1>Well Pump Controller</h1>
     </div>
     <div class="content">
       <div class="card-grid">
-        <div class="card" id="pump" data-status="%PUMP_STATE%">
+        <div class="card" id="pump" data-status="%PUMP_STATUS%">
           <div class="card-title">Well Pump</div>
           <div class="card-body">
-            <a href="/?pump_status=on">ON</a>
-            <a href="/?pump_status=off">OFF</a>
+            <div class="power-switch">
+              <input type="checkbox" />
+              <div class="button">
+                <svg class="power-off">
+                  <use xlink:href="#line" class="line" />
+                  <use xlink:href="#circle" class="circle" />
+                </svg>
+              </div>
+            </div>
           </div>
           <div class="state">State: %PUMP_STATUS%</div>
         </div>
+
+        <div class="card" id="waterflow" data-status="%WATER_FLOW%">
+          <div class="card-title">Water Flow</div>
+          <div class="card-body">
+            <div class="value">%WATER_FLOW%</div>
+            <div class="unit">l/min</div>
+          </div>
+          <div class="state">State: %WATER_FLOW%</div>
+        </div>
+        
+        <div class="card" id="soil" data-status="%SOIL_HUMIDITY%">
+          <div class="card-title">Soil Humidity</div>
+          <div class="card-body">
+            <div class="value">%SOIL_HUMIDITY%&#37;</div>            
+            <div class="unit">relative humidity</div>
+          </div>
+          <div class="state">State: %SOIL_HUMIDITY%</div>
+        </div>        
       </div>
     </div>
   </body>
